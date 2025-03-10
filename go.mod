@@ -1,4 +1,4 @@
-module voiceworld
+module github.com/voiceworld/voiceworld-go-sdk
 
 go 1.22
 
