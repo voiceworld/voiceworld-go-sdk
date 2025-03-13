@@ -1,30 +1,21 @@
-module github.com/voiceworld/voiceworld-go-sdk
+module voiceworld-go-sdk
 
-go 1.22
+go 1.23.0
 
 toolchain go1.24.1
 
 require (
-	github.com/Unknwon/goconfig v1.0.0
-	github.com/aliyun/alibaba-cloud-sdk-go v1.62.676
-	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
-	github.com/tidwall/gjson v1.18.0
+	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
+	github.com/schollz/progressbar/v3 v3.18.0
 )
 
 require (
-	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
-	github.com/json-iterator/go v1.1.5 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // indirect
+	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/schollz/progressbar/v3 v3.18.0 // indirect
-	github.com/smartystreets/goconvey v1.8.1 // indirect
-	github.com/tidwall/match v1.1.1 // indirect
-	github.com/tidwall/pretty v1.2.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/term v0.28.0 // indirect
-	golang.org/x/time v0.3.0 // indirect
-	gopkg.in/ini.v1 v1.66.2 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/term v0.30.0 // indirect
+	golang.org/x/time v0.11.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
