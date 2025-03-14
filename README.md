@@ -25,13 +25,7 @@ VoiceWorld Go SDK 是一个用于音频处理的 Go 语言开发工具包，提�
    - 运行安装程序并按照提示完成安装
    - 验证安装：打开命令提示符，运行 `go version`
 
-2. 安装 Protocol Buffers
-   - 访问 https://github.com/protocolbuffers/protobuf/releases
-   - 下载适用于 Windows 的最新版本
-   - 解压文件，并将 bin 目录添加到系统环境变量 PATH 中
-   - 验证安装：打开命令提示符，运行 `protoc --version`
-
-3. 安装 SDK
+2. 安装 SDK
    ```bash
    # 克隆仓库
    git clone https://github.com/your-username/voiceworld-go-sdk.git
@@ -52,19 +46,10 @@ VoiceWorld Go SDK 是一个用于音频处理的 Go 语言开发工具包，提�
    source ~/.bashrc
    ```
 
-2. 安装 Protocol Buffers
-   ```bash
-   # Ubuntu/Debian
-   sudo apt-get install protobuf-compiler
-
-   # MacOS
-   brew install protobuf
-   ```
-
-3. 安装 SDK
+2. 安装 SDK
    ```bash
    # 克隆仓库
-   git clone https://github.com/your-username/voiceworld-go-sdk.git
+   git clone https://github.com/voiceworld/voiceworld-go-sdk.git
    cd voiceworld-go-sdk
 
    # 运行安装脚本

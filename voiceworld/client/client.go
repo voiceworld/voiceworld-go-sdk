@@ -364,13 +364,13 @@ func (c *Client) GetOSSToken(requestID string, taskID string) (*OSSTokenResponse
 
 // ProcessAudio 处理音频文件
 func (c *Client) ProcessAudio(inputFile string) (string, error) {
-	// 在当前目录下创建temp目录
+	// 创建临时目录，使用filepath包处理路径
 	tempDir := "temp"
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
 		return "", fmt.Errorf("创建临时目录失败: %v", err)
 	}
 
-	// 使用相对路径创建临时文件
+	// 使用filepath包处理路径，确保跨平台兼容
 	outputFile := filepath.Join(tempDir, fmt.Sprintf("processed_%d.wav", time.Now().UnixNano()))
 
 	// 打开源文件
@@ -497,12 +497,10 @@ func (c *Client) UploadFile(filepath string, objectName string, requestID string
 
 	// 如果没有提供对象名称，则使用文件名
 	if objectName == "" {
-		objectName = filepath[strings.LastIndex(filepath, "/")+1:]
-		if runtime.GOOS == "windows" {
-			objectName = filepath[strings.LastIndex(filepath, "\\")+1:]
-		}
-		// 添加时间戳前缀，避免文件名冲突
-		objectName = fmt.Sprintf("audio/%d_%s.wav", time.Now().Unix(), strings.TrimSuffix(filepath[strings.LastIndex(filepath, "/")+1:], path.Ext(filepath)))
+		// 使用filepath包获取文件名，确保跨平台兼容
+		objectName = filepath.Base(filepath)
+		// 添加时间戳前缀，使用path包处理OSS路径（使用正斜杠）
+		objectName = path.Join("audio", fmt.Sprintf("%d_%s.wav", time.Now().Unix(), strings.TrimSuffix(objectName, filepath.Ext(filepath))))
 	}
 
 	// 6. 分片上传处理后的音频文件
@@ -1346,8 +1344,8 @@ func (c *Client) SplitAudioFile(filepath string, requestID string, taskID string
 			return nil, fmt.Errorf("复制音频数据失败: %v", err)
 		}
 
-		// 生成OSS对象名称
-		objectName := fmt.Sprintf("audio/%s/part_%d.wav", requestID, i+1)
+		// 生成OSS对象名称，使用path包处理路径分隔符
+		objectName := path.Join("audio", requestID, fmt.Sprintf("part_%d.wav", i+1))
 
 		// 上传到OSS
 		err = bucket.PutObject(objectName, bytes.NewReader(chunkBuffer.Bytes()))

@@ -1367,11 +1367,477 @@ _**Assistant**_
 
 _****_
 
-
+```diff
+  )
+  
+- func main() {
+- 	// SDK配置
+- 	appKey := "your_app_key"       // 替换为您的APP_KEY
+- 	appSecret := "your_app_secret" // 替换为您的APP_SECRET
+- 	audioFile := "./example.wav"   // 替换为您的音频文件路径
+- 	taskID := "test_task_001"      // 自定义任务ID
+- 
+- 	// 音频处理配置
+- 	modelType := client.ModelTypeBeat2B // 或者使用 client.ModelTypeHighAccur
+- 	sampleRate := 16000                 // 采样率
+- 	channels := 1                       // 声道数
+- 
+- 	// 创建配置
+- 	config := &client.ClientConfig{
+- 		BaseURL:   "https://api.example.com", // 替换为实际的API地址
+- 		OSSConfig: &client.OSSConfig{},       // OSS配置将通过GetOSSToken获取
+- 	}
+- 
+- 	// 创建 SDK 客户端
+- 	sdk := client.NewClient(appKey, appSecret, config)
+- 
++ // 处理音频文件并返回结果
++ func processAudio(sdk *client.Client, audioFile, taskID string, modelType string, sampleRate, channels int) error {
+  	// 生成请求ID
+  	requestID := fmt.Sprintf("%d", time.Now().UnixNano())
+  
+  	// 获取OSS临时凭证
++ 	if err := getOSSToken(sdk, requestID, taskID); err != nil {
++ 		return err
++ 	}
++ 
++ 	// 处理音频文件
++ 	if err := splitAudioFile(sdk, audioFile, requestID, taskID, modelType, sampleRate, channels); err != nil {
++ 		return err
++ 	}
++ 
++ 	return nil
++ }
++ 
++ // 获取OSS临时凭证
++ func getOSSToken(sdk *client.Client, requestID, taskID string) error {
+  	_, err := sdk.GetOSSToken(requestID, taskID)
+  	if err != nil {
+  		fmt.Printf("获取OSS凭证失败: %v\n", err)
+- 		os.Exit(1)
++ 		return err
+  	}
+  
+- 	// 隐藏OSS凭证详细信息，只显示基本状态
+  	fmt.Printf("\n=== 系统初始化 ===\n")
+  	fmt.Printf("状态: 成功\n")
+  	fmt.Printf("任务ID: %s\n", taskID)
+  	fmt.Println("===============\n")
++ 	return nil
++ }
+  
++ // 分割音频文件
++ func splitAudioFile(sdk *client.Client, audioFile, requestID, taskID string, modelType string, sampleRate, channels int) error {
+  	fmt.Printf("开始处理音频文件: %s\n", audioFile)
+  	fmt.Printf("任务ID: %s\n", taskID)
+  	if err != nil {
+  		fmt.Printf("错误信息: %s\n", err.Error())
+- 		// 如果是服务端接受了任务但返回了任务已提交的消息，继续查询进度
+  		if result != nil && result.Success {
+  			fmt.Println("\n任务已提交，开始处理...\n")
+- 			goto QUERY_PROGRESS
++ 			return waitForResult(sdk, requestID, taskID, modelType, sampleRate, channels)
+  		}
+- 		os.Exit(1)
++ 		return err
+  	}
+  
+  	fmt.Println("===============\n")
+  
+- QUERY_PROGRESS:
++ 	return waitForResult(sdk, requestID, taskID, modelType, sampleRate, channels)
++ }
++ 
++ // 等待并获取处理结果
++ func waitForResult(sdk *client.Client, requestID, taskID string, modelType string, sampleRate, channels int) error {
+  	fmt.Println("正在处理音频，请稍候...")
+  
+- 	// 等待任务完成
+  	progress, err := sdk.WaitForComplete(requestID, taskID, modelType, sampleRate, channels, 2, 600, nil)
+  	if err != nil {
+  		fmt.Printf("\n处理失败: %s\n", err.Error())
+- 		os.Exit(1)
++ 		return err
+  	}
+  
+- 	// 格式化输出结果
+  	fmt.Println("\n=== 音频转写结果 ===")
+  	fmt.Printf("状态: %v\n", progress.Success)
+  	fmt.Printf("消息: %s\n", progress.Message)
+  
+- 	// 格式化输出JSON结果
+  	if progress.Result != nil {
+  		fmt.Printf("\n结果:\n%s\n", progress.Result)
+  	}
+  	fmt.Println("\n=== 处理完成 ===")
++ 	return nil
++ }
++ 
++ func main() {
++ 	// SDK配置
++ 	appKey := "your_app_key"      // 替换为您的APP_KEY
++ 	appSecret := "your_app_secret" // 替换为您的APP_SECRET
++ 	audioFile := "./example.wav"   // 替换为您的音频文件路径
++ 	taskID := "test_task_001"     // 自定义任务ID
++ 
++ 	// 音频处理配置
++ 	modelType := client.ModelTypeBeat2B // 或者使用 client.ModelTypeHighAccur
++ 	sampleRate := 16000                 // 采样率
++ 	channels := 1                       // 声道数
++ 
++ 	// 创建配置
++ 	config := &client.ClientConfig{
++ 		BaseURL:   "https://api.example.com", // 替换为实际的API地址
++ 		OSSConfig: &client.OSSConfig{},       // OSS配置将通过GetOSSToken获取
++ 	}
++ 
++ 	// 创建 SDK 客户端
++ 	sdk := client.NewClient(appKey, appSecret, config)
++ 
++ 	// 处理音频文件
++ 	if err := processAudio(sdk, audioFile, taskID, modelType, sampleRate, channels); err != nil {
++ 		os.Exit(1)
++ 	}
+  }
+  
+```
 
 ---
 
 _****_
+
+代码已重构为更清晰的结构：
+
+1. 主要处理逻辑被拆分为四个函数：
+   - `processAudio`: 主处理流程
+   - `getOSSToken`: 获取 OSS 凭证
+   - `splitAudioFile`: 分割音频文件
+   - `waitForResult`: 等待处理结果
+
+2. main 函数现在只需要关注配置部分：
+   ```go
+   func main() {
+       // SDK配置
+       appKey := "your_app_key"
+       appSecret := "your_app_secret"
+       audioFile := "./example.wav"
+       taskID := "test_task_001"
+
+       // 音频处理配置
+       modelType := client.ModelTypeBeat2B
+       sampleRate := 16000
+       channels := 1
+
+       // 创建配置
+       config := &client.ClientConfig{
+           BaseURL:   "https://api.example.com",
+           OSSConfig: &client.OSSConfig{},
+       }
+
+       // 创建 SDK 客户端
+       sdk := client.NewClient(appKey, appSecret, config)
+
+       // 处理音频文件
+       if err := processAudio(sdk, audioFile, taskID, modelType, sampleRate, channels); err != nil {
+           os.Exit(1)
+       }
+   }
+   ```
+
+3. 改进了错误处理：
+   - 移除了 `goto` 语句
+   - 使用返回错误而不是直接退出
+   - 在 main 函数中统一处理错误
+
+这样的结构让用户可以：
+1. 只关注配置部分
+2. 更容易理解代码流程
+3. 更灵活地处理错误
+4. 需要时可以重用处理函数
+
+---
+
+_**User**_
+
+@README.md 修改，去掉无关了，只是使用说明
+
+---
+
+_**Assistant**_
+
+我来帮您精简 README.md，只保留必要的使用说明。我会修改文件以聚焦于基本使用方法。
+
+---
+
+_****_
+
+```diff
+  # VoiceWorld Go SDK
+  
+- VoiceWorld Go SDK 是一个用于音频处理的 Go 语言开发工具包，提供了简单而强大的接口来使用 VoiceWorld 的语音处理服务。
+- 
+- ## 功能特点
+- 
+- - 支持音频文件分割处理
+- - 提供 OSS 文件上传功能
+- - 支持实时进度查询
+- - 提供多种音频处理模型选择
+- - 支持自定义采样率和声道配置
++ VoiceWorld Go SDK 是一个用于音频处理的 Go 语言开发工具包。
+  
+  ## 系统要求
+  
+  - Go 1.16 或更高版本
+- - Protocol Buffers 编译器 (protoc)
+- - Windows/Linux/MacOS 系统
+- 
+- ## 安装步骤
+- 
+- ### Windows 用户
+- 
+- 1. 安装 Go
+-    - 访问 https://golang.org/dl/ 下载最新版本的 Go
+-    - 运行安装程序并按照提示完成安装
+-    - 验证安装：打开命令提示符，运行 `go version`
+- 
+- 2. 安装 Protocol Buffers
+-    - 访问 https://github.com/protocolbuffers/protobuf/releases
+-    - 下载适用于 Windows 的最新版本
+-    - 解压文件，并将 bin 目录添加到系统环境变量 PATH 中
+-    - 验证安装：打开命令提示符，运行 `protoc --version`
+- 
+- 3. 安装 SDK
++ 
++ ## 安装
++ 
+  ```bash
+-    # 克隆仓库
+-    git clone https://github.com/your-username/voiceworld-go-sdk.git
+-    cd voiceworld-go-sdk
+- 
+-    # 运行安装脚本
+-    .\install.bat
+-    ```
+- 
+- ### Linux/MacOS 用户
+- 
+- 1. 安装 Go
+-    ```bash
+-    # 下载并安装 Go
+-    wget https://golang.org/dl/go1.24.1.linux-amd64.tar.gz
+-    sudo tar -C /usr/local -xzf go1.24.1.linux-amd64.tar.gz
+-    echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.bashrc
+-    source ~/.bashrc
+-    ```
+- 
+- 2. 安装 Protocol Buffers
+-    ```bash
+-    # Ubuntu/Debian
+-    sudo apt-get install protobuf-compiler
+- 
+-    # MacOS
+-    brew install protobuf
+-    ```
+- 
+- 3. 安装 SDK
+-    ```bash
+-    # 克隆仓库
+-    git clone https://github.com/your-username/voiceworld-go-sdk.git
+-    cd voiceworld-go-sdk
+- 
+-    # 运行安装脚本
+-    chmod +x install.sh
+-    ./install.sh
++ go get github.com/your-username/voiceworld-go-sdk
+  ```
+  
+- ## 快速开始
+- 
+- ### 1. 初始化客户端
++ ## 使用示例
+  
+  ```go
+- import "voiceworld-go-sdk/voiceworld/client"
+- 
+- // 创建配置
++ package main
++ 
++ import (
++     "voiceworld-go-sdk/voiceworld/client"
++ )
++ 
++ func main() {
++     // 1. 创建配置
+      config := &client.ClientConfig{
+-     BaseURL:   "http://your-api-endpoint",
++         BaseURL:   "https://api.voiceworld.cn",
+          OSSConfig: &client.OSSConfig{},
+      }
+  
+- // 创建 SDK 客户端
+- sdk := client.NewClient("YOUR_APP_KEY", "YOUR_APP_SECRET", config)
+- ```
+- 
+- ### 2. 处理音频文件
+- 
+- ```go
+- // 生成请求ID
+- requestID := fmt.Sprintf("%d", time.Now().UnixNano())
+- taskID := "your_task_id"
+- 
+- // 获取OSS上传凭证
+- _, err := sdk.GetOSSToken(requestID, taskID)
+- if err != nil {
+-     log.Fatal(err)
+- }
+- 
+- // 音频处理配置
+- modelType := client.ModelTypeBeat2B  // 或使用 client.ModelTypeHighAccur
++     // 2. 创建 SDK 客户端
++     sdk := client.NewClient(
++         "YOUR_APP_KEY",    // 替换为您的APP_KEY
++         "YOUR_APP_SECRET", // 替换为您的APP_SECRET
++         config,
++     )
++ 
++     // 3. 设置音频处理参数
++     modelType := client.ModelTypeBeat2B  // 处理模型
+      sampleRate := 16000                  // 采样率
+      channels := 1                        // 声道数
+- 
+- // 处理音频文件
+- result, err := sdk.SplitAudioFile("path/to/audio.wav", requestID, taskID)
+- if err != nil {
+-     log.Fatal(err)
+- }
+- 
+- // 等待处理完成并获取结果
+- progress, err := sdk.WaitForComplete(requestID, taskID, modelType, sampleRate, channels, 2, 600, nil)
+- if err != nil {
+-     log.Fatal(err)
++     audioFile := "./example.wav"         // 音频文件路径
++     taskID := "test_task_001"           // 任务ID
++ 
++     // 4. 处理音频文件
++     if err := processAudio(sdk, audioFile, taskID, modelType, sampleRate, channels); err != nil {
++         // 错误处理
++     }
+  }
+  ```
+  
+- ## 配置说明
++ ## 参数说明
+  
+- ### 客户端配置
+- 
+- - `BaseURL`: API 服务器地址
+- - `OSSConfig`: OSS 配置信息（通过 GetOSSToken 自动获取）
++ ### 基本配置
++ - `APP_KEY`: 应用密钥
++ - `APP_SECRET`: 应用密钥
++ - `BaseURL`: API服务器地址
+  
+- ### 音频处理参数
+- 
+- - `ModelType`: 处理模型类型
++ ### 音频参数
++ - `modelType`: 处理模型类型
+    - `ModelTypeBeat2B`: 标准模型
+    - `ModelTypeHighAccur`: 高精度模型
+- - `SampleRate`: 采样率（默认 16000）
+- - `Channels`: 声道数（默认 1）
+- 
+- ## 错误处理
+- 
+- SDK 中的所有方法都会返回错误信息，建议在生产环境中妥善处理这些错误：
+- 
+- ```go
+- result, err := sdk.SomeOperation()
+- if err != nil {
+-     // 记录错误日志
+-     log.Printf("操作失败: %v", err)
+-     // 根据错误类型进行处理
+-     switch err.(type) {
+-     case *client.APIError:
+-         // 处理 API 错误
+-     case *client.NetworkError:
+-         // 处理网络错误
+-     default:
+-         // 处理其他错误
+-     }
+-     return
+- }
+- ```
++ - `sampleRate`: 采样率（推荐16000）
++ - `channels`: 声道数（推荐1）
+  
+  ## 注意事项
+  
+- 1. 请确保正确配置 APP_KEY 和 APP_SECRET
+- 2. 音频文件支持的格式：WAV
+- 3. 建议使用 16kHz 采样率和单声道配置以获得最佳效果
+- 4. 处理大文件时注意设置合适的超时时间
+- 5. 在生产环境中实现适当的重试机制
+- 
+- ## 常见问题
+- 
+- 1. Q: 如何处理上传超时？
+-    A: 可以通过调整 WaitForComplete 方法的超时参数来处理
+- 
+- 2. Q: 支持哪些音频格式？
+-    A: 目前主要支持 WAV 格式，建议使用 16kHz 采样率
+- 
+- 3. Q: 如何选择合适的模型？
+-    A: ModelTypeBeat2B 适合一般场景，ModelTypeHighAccur 适合需要更高精度的场景
+- 
+- ## 技术支持
+- 
+- 如果您在使用过程中遇到任何问题，请通过以下方式获取支持：
+- 
+- - 提交 GitHub Issue
+- - 发送邮件至技术支持邮箱
+- - 查阅在线文档
+- 
+- ## 许可证
+- 
+- 本项目采用 [许可证类型] 许可证，详情请参见 LICENSE 文件。 
++ 1. 音频文件支持WAV格式
++ 2. 建议使用16kHz采样率和单声道配置
++ 3. 确保正确配置APP_KEY和APP_SECRET 
+```
+
+---
+
+_****_
+
+我已经帮您精简了 README.md 文件，现在它只包含最基本和必要的使用说明：
+
+1. 简短的项目介绍
+2. 系统要求
+3. 安装方法
+4. 使用示例代码
+5. 关键参数说明
+6. 基本注意事项
+
+移除了以下内容：
+1. 详细的安装步骤说明
+2. Protocol Buffers 相关内容
+3. 错误处理详细说明
+4. 常见问题解答
+5. 技术支持信息
+6. 许可证信息
+
+新的 README.md 更加简洁明了，让用户能够快速了解如何使用 SDK。是否还需要进一步调整？
+
+---
+
+_**User**_
+
+@client.go 让linux也可以使用
+
+---
+
+_**Assistant**_
 
 
 
