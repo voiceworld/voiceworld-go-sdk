@@ -14,9 +14,11 @@ func main() {
 	// 创建客户端配置
 	clientConfig := voiceworld.ClientConfig{
 		APIEndpoint: "http://192.168.110.219:16062", // 替换为实际的API端点
-		AppKey:      "userAppKey",                   // 替换为您的AppKey
-		AppSecret:   "userAppSecret",                // 替换为您的AppSecret
+		AppKey:      "userAppKey",                   // 替换为您的实际AppKey
+		AppSecret:   "userAppSecret",                // 替换为您的实际AppSecret
 	}
+
+	// 请确保替换上面的AppKey和AppSecret为您的实际凭据，否则将导致API调用失败
 
 	// 生成用户任务ID（可选）
 	userTaskID := ""

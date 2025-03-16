@@ -76,6 +76,14 @@ func (p *AudioProcessor) ProcessAudio(ctx context.Context, audioPath string, use
 
 	// 获取STS临时凭证
 	stsResp, err := p.client.GetSTSCredentials(ctx, userTaskID)
+	if err != nil {
+		return nil, fmt.Errorf("获取STS临时凭证失败: %v", err)
+	}
+
+	// 检查stsResp是否为nil或Data是否为空
+	if stsResp == nil || stsResp.Data.Endpoint == "" {
+		return nil, fmt.Errorf("获取到的STS凭证无效")
+	}
 
 	// 创建OSS配置
 	ossConfig := utils.OSSConfig{
