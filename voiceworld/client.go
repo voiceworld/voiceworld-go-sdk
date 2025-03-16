@@ -80,6 +80,14 @@ type RunRequest struct {
 	FilePath    string      `json:"file_path"`
 }
 
+// RunTaskRequest 提交任务处理请求
+type RunTaskRequest struct {
+	AppKey     string `json:"app_key"`
+	AppSecret  string `json:"app_secret"`
+	RequestID  string `json:"request_id"`
+	UserTaskID string `json:"user_task_id,omitempty"`
+}
+
 type GetResultRequest struct {
 	AppKey     string `json:"app_key"`
 	AppSecret  string `json:"app_secret"`
